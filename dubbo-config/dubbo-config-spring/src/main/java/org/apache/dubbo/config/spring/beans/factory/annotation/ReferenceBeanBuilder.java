@@ -34,11 +34,11 @@ import java.beans.PropertyEditorSupport;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.dubbo.config.spring.util.AnnotationUtils.getAttribute;
-import static org.apache.dubbo.config.spring.util.AnnotationUtils.getAttributes;
-import static org.apache.dubbo.config.spring.util.AnnotationUtils.resolveServiceInterfaceClass;
-import static org.apache.dubbo.config.spring.util.BeanFactoryUtils.getOptionalBean;
-import static org.apache.dubbo.config.spring.util.ObjectUtils.of;
+import static com.alibaba.spring.util.AnnotationUtils.getAttribute;
+import static com.alibaba.spring.util.AnnotationUtils.getAttributes;
+import static com.alibaba.spring.util.BeanFactoryUtils.getOptionalBean;
+import static com.alibaba.spring.util.ObjectUtils.of;
+import static org.apache.dubbo.config.spring.util.DubboAnnotationUtils.resolveServiceInterfaceClass;
 import static org.springframework.core.annotation.AnnotationAttributes.fromMap;
 import static org.springframework.util.StringUtils.commaDelimitedListToStringArray;
 
@@ -57,6 +57,15 @@ class ReferenceBeanBuilder extends AnnotatedInterfaceConfigBeanBuilder<Reference
     }
 
     private void configureInterface(AnnotationAttributes attributes, ReferenceBean referenceBean) {
+        Boolean generic = getAttribute(attributes, "generic");
+        if (generic != null && generic) {
+            // it's a generic reference
+            String interfaceClassName = getAttribute(attributes, "interfaceName");
+            Assert.hasText(interfaceClassName,
+                    "@Reference interfaceName() must be present when reference a generic service!");
+            referenceBean.setInterface(interfaceClassName);
+            return;
+        }
 
         Class<?> serviceInterfaceClass = resolveServiceInterfaceClass(attributes, interfaceClass);
 
